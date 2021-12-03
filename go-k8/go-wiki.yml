@@ -1,0 +1,28 @@
+# Hello World Deployment YAML
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gowiki-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goWiki
+  template: 
+    metadata:
+      labels:
+        app: goWiki
+    spec:
+      containers:
+      - name: go-wiki
+        image: go-wiki
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081 
+
+      - name: go-proxy
+        image: go-proxy
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+      restartPolicy: Always
