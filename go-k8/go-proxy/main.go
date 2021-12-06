@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var logFields = log.Fields{
+	"application": "go-proxy",
+}
 
 // NewProxy takes target host and creates a reverse proxy
 func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
@@ -29,6 +34,7 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 // ProxyRequestHandler handles the http request using proxy
 func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.WithFields(logFields).WithField("event", "proxyRequest").Info("Served Proxy")
 		proxy.ServeHTTP(w, r)
 	}
 }
@@ -47,13 +53,19 @@ func modifyRequest(req *http.Request) {
 
 func errorHandler() func(http.ResponseWriter, *http.Request, error) {
 	return func(w http.ResponseWriter, req *http.Request, err error) {
+		errorLogger(err.Error())
 		fmt.Printf("Got error while modifying response: %v \n", err)
 		return
 	}
 }
 
+func errorLogger(err string) {
+	log.WithFields(logFields).WithField("event", "error").Error(err)
+}
+
 func main() {
 	// initialize a reverse proxy and pass the actual backend server url here
+	log.WithFields(logFields).Info("Proxy Start")
 	proxy, err := NewProxy("http://localhost:8081")
 	if err != nil {
 		panic(err)
@@ -61,5 +73,9 @@ func main() {
 
 	// handle all requests to your server using the proxy
 	http.HandleFunc("/", ProxyRequestHandler(proxy))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	http.ListenAndServe(":8080", nil)
+}
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
 }
