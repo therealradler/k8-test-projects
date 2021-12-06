@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gowiki-deployment-service
+spec:
+  type: NodePort
+  selector:
+    app: goWiki
+  ports: 
+   - nodePort: 30163
+     port: 8080
+     targetPort: 8080
