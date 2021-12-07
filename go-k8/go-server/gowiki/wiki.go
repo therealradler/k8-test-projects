@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 
@@ -102,5 +103,10 @@ func main() {
 }
 
 func init() {
+	logFile, err := os.OpenFile("go-wiki.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		log.WithFields(logFields).Error("error opening file: %v", err)
+	}
 	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(io.MultiWriter(logFile, os.Stdout))
 }

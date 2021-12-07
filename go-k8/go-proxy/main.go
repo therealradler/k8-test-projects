@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -77,5 +79,10 @@ func main() {
 }
 
 func init() {
+	logFile, err := os.OpenFile("go-wiki.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+	if err != nil {
+		log.WithFields(logFields).Error("error opening file: %v", err)
+	}
 	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(io.MultiWriter(logFile, os.Stdout))
 }
