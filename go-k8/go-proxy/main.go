@@ -37,6 +37,7 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.WithFields(logFields).WithField("event", "proxyRequest").Info("Served Proxy")
+		requestLogger(r)
 		proxy.ServeHTTP(w, r)
 	}
 }
@@ -63,6 +64,13 @@ func errorHandler() func(http.ResponseWriter, *http.Request, error) {
 
 func errorLogger(err string) {
 	log.WithFields(logFields).WithField("event", "error").Error(err)
+}
+
+func requestLogger(r *http.Request) {
+	log.WithFields(logFields).WithFields(log.Fields{
+		"uri":    r.RequestURI,
+		"method": r.Method,
+	}).Info("request completed")
 }
 
 func main() {
